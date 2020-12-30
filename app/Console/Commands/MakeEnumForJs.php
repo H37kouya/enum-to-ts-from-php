@@ -119,6 +119,40 @@ class MakeEnumForJs extends Command
             $this->getOutputJsPath().'/'.$className.'.ts',
             $writableData
         );
+
+        // test生成
+        $stubData = file_get_contents($this->getStubTestPath());
+        $keyValueTest = '';
+        foreach ($reflectionClass->getConstants() as $key => $value) {
+            $keyValueTest .= "    it('is{$key}', () => {\n";
+            $keyValueTest .= "        expect(TestFunc.{$className}.{$key}).toBe('{$value}')\n";
+            $keyValueTest .= "        expect(TestFunc.is{$className}('{$value}')).toBeTruthy()\n";
+            $keyValueTest .= "        expect(TestFunc.is{$key}('{$value}')).toBeTruthy()\n";
+            $keyValueTest .= "        expect(TestFunc.is{$key}('aaaaabbbbcccc')).toBeFalsy()\n";
+            $keyValueTest .= "    })\n";
+        }
+
+        /**
+         * stubの置き換え
+         *
+         * Classのコメントと名前を置き換え
+         * 定数をkeyとvalueにする
+         */
+        $writableData = $this->replaceTogether(
+            [
+                new ReplaceValueObject('{{ $className }}', $className),
+                new ReplaceValueObject('{{ $test }}', $keyValueTest),
+            ],
+            $stubData
+        );
+
+        /**
+         * ファイルへの書き込み
+         */
+        file_put_contents(
+            $this->getOutputJsTestPath().'/'.$className.'.spec.ts',
+            $writableData
+        );
     }
 
     /**
@@ -147,9 +181,19 @@ class MakeEnumForJs extends Command
         return app_path('Console/Commands/stubs/enum.ts.stub');
     }
 
+    private function getStubTestPath(): string
+    {
+        return app_path('Console/Commands/stubs/enum_test.ts.stub');
+    }
+
     private function getOutputJsPath(): string
     {
         return resource_path('/js/enum');
+    }
+
+    private function getOutputJsTestPath(): string
+    {
+        return resource_path('/js/__tests__/enum');
     }
 }
 

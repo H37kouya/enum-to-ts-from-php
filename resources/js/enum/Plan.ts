@@ -23,7 +23,7 @@ export type Plan = typeof Plan[keyof typeof Plan]
 /**
  * [Enum] Plan
  */
-export const isPlan = (s: string): s is Plan => Object.keys(Plan).includes(s)
+export const isPlan = (s: any): s is Plan => Object.values(Plan).includes(s)
 
 /**
  * 個人

@@ -18,7 +18,7 @@ export type Type = typeof Type[keyof typeof Type]
 /**
  * [Enum] Type
  */
-export const isType = (s: string): s is Type => Object.keys(Type).includes(s)
+export const isType = (s: any): s is Type => Object.values(Type).includes(s)
 
 /**
  * ユーザー

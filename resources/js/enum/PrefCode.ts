@@ -98,7 +98,7 @@ export const PrefCode = {
 export type PrefCode = typeof PrefCode[keyof typeof PrefCode]
 
 
-export const isPrefCode = (s: string): s is PrefCode => Object.values(PrefCode).includes(s)
+export const isPrefCode = (s: any): s is PrefCode => Object.values(PrefCode).includes(s)
 
 export const isHOKKAIDOU = (v: any): v is '1' => v === PrefCode.HOKKAIDOU
 export const isAOMORI = (v: any): v is '2' => v === PrefCode.AOMORI
