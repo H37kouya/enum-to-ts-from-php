@@ -23,16 +23,16 @@ export type Plan = typeof Plan[keyof typeof Plan]
 /**
  * [Enum] Plan
  */
-export const isPlan = (s: string): s is Plan => Object.keys(Plan).includes(s)
+export const isPlan = (s: any): s is Plan => Object.values(Plan).includes(s)
 
 /**
  * 個人
  */
-export const isPERSONAL = (v: Plan): v is 'PERSONAL' => v === Plan.PERSONAL
-export const isPRO = (v: Plan): v is 'PRO' => v === Plan.PRO
+export const isPERSONAL = (v: any): v is 'PERSONAL' => v === Plan.PERSONAL
+export const isPRO = (v: any): v is 'PRO' => v === Plan.PRO
 /**
  * 企業
  */
-export const isENTERPRISE = (v: Plan): v is 'ENTERPRISE' => v === Plan.ENTERPRISE
+export const isENTERPRISE = (v: any): v is 'ENTERPRISE' => v === Plan.ENTERPRISE
 /** 学生 */
-export const isSTUDENT = (v: Plan): v is 'STUDENT' => v === Plan.STUDENT
+export const isSTUDENT = (v: any): v is 'STUDENT' => v === Plan.STUDENT

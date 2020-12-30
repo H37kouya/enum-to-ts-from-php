@@ -18,13 +18,13 @@ export type Type = typeof Type[keyof typeof Type]
 /**
  * [Enum] Type
  */
-export const isType = (s: string): s is Type => Object.keys(Type).includes(s)
+export const isType = (s: any): s is Type => Object.values(Type).includes(s)
 
 /**
  * ユーザー
  */
-export const isUSER = (v: Type): v is 'USER' => v === Type.USER
+export const isUSER = (v: any): v is 'USER' => v === Type.USER
 /**
  * 組織
  */
-export const isORGANIZATION = (v: Type): v is 'ORGANIZATION' => v === Type.ORGANIZATION
+export const isORGANIZATION = (v: any): v is 'ORGANIZATION' => v === Type.ORGANIZATION

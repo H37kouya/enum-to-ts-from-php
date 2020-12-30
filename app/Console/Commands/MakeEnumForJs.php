@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Enum\Extend;
 use App\Enum\Type;
 use App\Enum\Plan;
+use App\Enum\PrefCode;
 use Illuminate\Console\Command;
 use ReflectionClass;
 use ReflectionClassConstant;
@@ -38,8 +40,10 @@ class MakeEnumForJs extends Command
     {
         parent::__construct();
         $this->enumClasses = [
-            Type::class,
+            Extend::class,
             Plan::class,
+            PrefCode::class,
+            Type::class,
         ];
     }
 
@@ -58,22 +62,17 @@ class MakeEnumForJs extends Command
     private function createEnumJsUsecase(string $class)
     {
         $reflectionClass = new ReflectionClass($class);
-        $constants = $reflectionClass->getConstants();
         $className = $reflectionClass->getShortName();
-        $classDocComment = $reflectionClass->getDocComment();
 
         /** stubの取得 */
         $stubData = file_get_contents($this->getStubPath());
-        /** Classのコメントと名前を置き換え */
-        $writableData = str_replace('{{ $classComment }}', $classDocComment, $stubData);
-        $writableData = str_replace('{{ $className }}', $className, $writableData);
 
         /**
          * key名よりオブジェクト値とis〇〇関数の作成
          */
         $keyValue = '';
         $keyValueGuardFunction = '';
-        foreach ($constants as $key => $value) {
+        foreach ($reflectionClass->getConstants() as $key => $value) {
             $reflectionClassConstant = new ReflectionClassConstant($class, $key);
 
             /**
@@ -89,15 +88,29 @@ class MakeEnumForJs extends Command
             }
 
             $keyValue .= "    {$key}: '{$value}',\n\n";
-            $keyValueGuardFunction .= "export const is{$key} = (v: {$className}): v is '{$key}' => v === {$className}.{$key}\n";
+            $keyValueGuardFunction .= "export const is{$key} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
         }
 
         /** いらない改行、カンマの削除 */
         $keyValue = substr($keyValue, 0, -3);
         /** いらない改行の削除 */
         $keyValueGuardFunction = substr($keyValueGuardFunction, 0, -1);
-        $writableData = str_replace('{{ $keyValue }}', $keyValue, $writableData);
-        $writableData = str_replace('{{ $keyValueGuardFunction }}', $keyValueGuardFunction, $writableData);
+
+        /**
+         * stubの置き換え
+         *
+         * Classのコメントと名前を置き換え
+         * 定数をkeyとvalueにする
+         */
+        $writableData = $this->replaceTogether(
+            [
+                new ReplaceValueObject('{{ $classComment }}', $reflectionClass->getDocComment() ?? ''),
+                new ReplaceValueObject('{{ $className }}', $className),
+                new ReplaceValueObject('{{ $keyValue }}', $keyValue),
+                new ReplaceValueObject('{{ $keyValueGuardFunction }}', $keyValueGuardFunction),
+            ],
+            $stubData
+        );
 
         /**
          * ファイルへの書き込み
@@ -106,6 +119,61 @@ class MakeEnumForJs extends Command
             $this->getOutputJsPath().'/'.$className.'.ts',
             $writableData
         );
+
+        // test生成
+        $stubData = file_get_contents($this->getStubTestPath());
+        $keyValueTest = '';
+        foreach ($reflectionClass->getConstants() as $key => $value) {
+            $keyValueTest .= "    it('is{$key}', () => {\n";
+            $keyValueTest .= "        expect(TestFunc.{$className}.{$key}).toBe('{$value}')\n";
+            $keyValueTest .= "        expect(TestFunc.is{$className}('{$value}')).toBeTruthy()\n";
+            $keyValueTest .= "        expect(TestFunc.is{$key}('{$value}')).toBeTruthy()\n";
+            $keyValueTest .= "        expect(TestFunc.is{$key}('aaaaabbbbcccc')).toBeFalsy()\n";
+            $keyValueTest .= "    })\n";
+        }
+
+        /**
+         * stubの置き換え
+         *
+         * Classのコメントと名前を置き換え
+         * 定数をkeyとvalueにする
+         */
+        $writableData = $this->replaceTogether(
+            [
+                new ReplaceValueObject('{{ $className }}', $className),
+                new ReplaceValueObject('{{ $test }}', $keyValueTest),
+            ],
+            $stubData
+        );
+
+        /**
+         * ファイルへの書き込み
+         */
+        file_put_contents(
+            $this->getOutputJsTestPath().'/'.$className.'.spec.ts',
+            $writableData
+        );
+    }
+
+    /**
+     * まとめて置き換える
+     *
+     * @param ReplaceValueObject[] $replaceValueObjects
+     * @param string $data
+     * @return void
+     */
+    private function replaceTogether(array $replaceValueObjects, string $data): string
+    {
+        $_data = $data;
+        foreach ($replaceValueObjects as $replaceValueObject) {
+            $_data = str_replace(
+                $replaceValueObject->search,
+                $replaceValueObject->replace,
+                $_data
+            );
+        }
+
+        return $_data;
     }
 
     private function getStubPath(): string
@@ -113,8 +181,29 @@ class MakeEnumForJs extends Command
         return app_path('Console/Commands/stubs/enum.ts.stub');
     }
 
+    private function getStubTestPath(): string
+    {
+        return app_path('Console/Commands/stubs/enum_test.ts.stub');
+    }
+
     private function getOutputJsPath(): string
     {
         return resource_path('/js/enum');
+    }
+
+    private function getOutputJsTestPath(): string
+    {
+        return resource_path('/js/__tests__/enum');
+    }
+}
+
+class ReplaceValueObject
+{
+    public string $search;
+    public string $replace;
+    public function __construct(string $search, string $replace)
+    {
+        $this->search = $search;
+        $this->replace = $replace;
     }
 }
