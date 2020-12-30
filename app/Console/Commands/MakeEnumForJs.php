@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enum\Extend;
 use App\Enum\Type;
 use App\Enum\Plan;
+use App\Enum\PrefCode;
 use Illuminate\Console\Command;
 use ReflectionClass;
 use ReflectionClassConstant;
@@ -40,8 +41,9 @@ class MakeEnumForJs extends Command
         parent::__construct();
         $this->enumClasses = [
             Extend::class,
-            Type::class,
             Plan::class,
+            PrefCode::class,
+            Type::class,
         ];
     }
 
@@ -86,7 +88,7 @@ class MakeEnumForJs extends Command
             }
 
             $keyValue .= "    {$key}: '{$value}',\n\n";
-            $keyValueGuardFunction .= "export const is{$value} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
+            $keyValueGuardFunction .= "export const is{$key} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
         }
 
         /** いらない改行、カンマの削除 */
