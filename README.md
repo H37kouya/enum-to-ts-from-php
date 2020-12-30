@@ -7,11 +7,9 @@
 ## Execute
 
 ``` shell
+# enum の生成
 $ php artisan make:enum
+
+# enum test by js
+$ npm test
 ```
-
-## Tips
-
-### If you support IE, you must use polyfill
-
-[Object.values()](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Object/values)
