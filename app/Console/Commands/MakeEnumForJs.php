@@ -7,6 +7,7 @@ use App\Enum\Type;
 use App\Enum\Plan;
 use App\Enum\PrefCode;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionClassConstant;
 
@@ -91,6 +92,7 @@ class MakeEnumForJs extends Command
         $keyValueGuardFunction = '';
         foreach ($reflectionClass->getConstants() as $key => $value) {
             $reflectionClassConstant = new ReflectionClassConstant($class, $key);
+            $funcCaseKey = $this->funcCase($key);
 
             /**
              * 定数のDoc Commentを取得
@@ -105,7 +107,7 @@ class MakeEnumForJs extends Command
             }
 
             $keyValue .= "    {$key}: '{$value}',\n\n";
-            $keyValueGuardFunction .= "export const is{$key} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
+            $keyValueGuardFunction .= "export const is{$funcCaseKey} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
         }
 
         /** いらない改行、カンマの削除 */
@@ -140,13 +142,15 @@ class MakeEnumForJs extends Command
         // test生成
         $keyValueTest = '';
         foreach ($reflectionClass->getConstants() as $key => $value) {
+            $funcCaseKey = $this->funcCase($key);
             $keyValueTest .= "    it('is{$key}', () => {\n";
             $keyValueTest .= "        expect(TestFunc.{$className}.{$key}).toBe('{$value}')\n";
             $keyValueTest .= "        expect(TestFunc.is{$className}('{$value}')).toBeTruthy()\n";
-            $keyValueTest .= "        expect(TestFunc.is{$key}('{$value}')).toBeTruthy()\n";
-            $keyValueTest .= "        expect(TestFunc.is{$key}('aaaaabbbbcccc')).toBeFalsy()\n";
+            $keyValueTest .= "        expect(TestFunc.is{$funcCaseKey}('{$value}')).toBeTruthy()\n";
+            $keyValueTest .= "        expect(TestFunc.is{$funcCaseKey}('aaaaabbbbcccc')).toBeFalsy()\n";
             $keyValueTest .= "    })\n";
         }
+        $keyValueTest = substr($keyValueTest, 0, -1);
 
         /**
          * stubの置き換え
@@ -210,6 +214,11 @@ class MakeEnumForJs extends Command
     private function getOutputJsTestPath(): string
     {
         return resource_path('/js/__tests__/enum');
+    }
+
+    private function funcCase(string $str): string
+    {
+        return Str::studly(strtolower($str));
     }
 }
 

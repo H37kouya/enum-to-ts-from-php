@@ -23,8 +23,8 @@ export const isType = (s: any): s is Type => Object.values(Type).includes(s)
 /**
  * ユーザー
  */
-export const isUSER = (v: any): v is 'USER' => v === Type.USER
+export const isUser = (v: any): v is 'USER' => v === Type.USER
 /**
  * 組織
  */
-export const isORGANIZATION = (v: any): v is 'ORGANIZATION' => v === Type.ORGANIZATION
+export const isOrganization = (v: any): v is 'ORGANIZATION' => v === Type.ORGANIZATION
