@@ -28,8 +28,20 @@ class MakeEnumForJs extends Command
 
     /**
      * enum class一覧
+     *
+     * @var string[]
      */
     protected array $enumClasses;
+
+    /**
+     * Stubの格納
+     */
+    protected string $stubDataForMain;
+
+    /**
+     * Stubの格納
+     */
+    protected string $stubDataForTest;
 
     /**
      * Create a new command instance.
@@ -45,6 +57,14 @@ class MakeEnumForJs extends Command
             PrefCode::class,
             Type::class,
         ];
+        $this->init();
+    }
+
+    private function init()
+    {
+        /** stubの取得 */
+        $this->stubDataForMain = file_get_contents($this->getStubPath());
+        $this->stubDataForTest = file_get_contents($this->getStubTestPath());
     }
 
     /**
@@ -63,9 +83,6 @@ class MakeEnumForJs extends Command
     {
         $reflectionClass = new ReflectionClass($class);
         $className = $reflectionClass->getShortName();
-
-        /** stubの取得 */
-        $stubData = file_get_contents($this->getStubPath());
 
         /**
          * key名よりオブジェクト値とis〇〇関数の作成
@@ -109,7 +126,7 @@ class MakeEnumForJs extends Command
                 new ReplaceValueObject('{{ $keyValue }}', $keyValue),
                 new ReplaceValueObject('{{ $keyValueGuardFunction }}', $keyValueGuardFunction),
             ],
-            $stubData
+            $this->stubDataForMain
         );
 
         /**
@@ -121,7 +138,6 @@ class MakeEnumForJs extends Command
         );
 
         // test生成
-        $stubData = file_get_contents($this->getStubTestPath());
         $keyValueTest = '';
         foreach ($reflectionClass->getConstants() as $key => $value) {
             $keyValueTest .= "    it('is{$key}', () => {\n";
@@ -143,7 +159,7 @@ class MakeEnumForJs extends Command
                 new ReplaceValueObject('{{ $className }}', $className),
                 new ReplaceValueObject('{{ $test }}', $keyValueTest),
             ],
-            $stubData
+            $this->stubDataForTest
         );
 
         /**
