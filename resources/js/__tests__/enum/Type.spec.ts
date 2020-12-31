@@ -4,14 +4,13 @@ describe('Enum Type', () => {
     it('isUSER', () => {
         expect(TestFunc.Type.USER).toBe('USER')
         expect(TestFunc.isType('USER')).toBeTruthy()
-        expect(TestFunc.isUSER('USER')).toBeTruthy()
-        expect(TestFunc.isUSER('aaaaabbbbcccc')).toBeFalsy()
+        expect(TestFunc.isUser('USER')).toBeTruthy()
+        expect(TestFunc.isUser('aaaaabbbbcccc')).toBeFalsy()
     })
     it('isORGANIZATION', () => {
         expect(TestFunc.Type.ORGANIZATION).toBe('ORGANIZATION')
         expect(TestFunc.isType('ORGANIZATION')).toBeTruthy()
-        expect(TestFunc.isORGANIZATION('ORGANIZATION')).toBeTruthy()
-        expect(TestFunc.isORGANIZATION('aaaaabbbbcccc')).toBeFalsy()
+        expect(TestFunc.isOrganization('ORGANIZATION')).toBeTruthy()
+        expect(TestFunc.isOrganization('aaaaabbbbcccc')).toBeFalsy()
     })
-
 })
