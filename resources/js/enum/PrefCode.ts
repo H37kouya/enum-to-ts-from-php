@@ -95,8 +95,13 @@ export const PrefCode = {
     OKINAWA: '47'
 } as const
 
+export type PrefCodeKey = keyof typeof PrefCode
 export type PrefCode = typeof PrefCode[keyof typeof PrefCode]
 
+
+export const getAllPrefCode = (): PrefCode[] => Object.values(PrefCode)
+
+export const getAllPrefCodeKey = (): PrefCodeKey[] => Object.keys(PrefCode) as PrefCodeKey[]
 
 export const isPrefCode = (s: any): s is PrefCode => Object.values(PrefCode).includes(s)
 

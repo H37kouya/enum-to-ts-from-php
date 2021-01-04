@@ -2,4 +2,28 @@ import * as TestFunc from '@/enum/{{ $className }}'
 
 describe('Enum {{ $className }}', () => {
 {{ $test }}
+
+    describe('getAll{{ $className }}', () => {
+        it('getAll{{ $className }} is Array', () => {
+            expect(Array.isArray(TestFunc.getAll{{ $className }}())).toBeTruthy()
+        })
+
+        for (const key in TestFunc.{{ $className }}) {
+            it(`getAll{{ $className }} ${TestFunc.{{ $className }}[key]}`, () => {
+                expect(TestFunc.getAll{{ $className }}()).toContain(TestFunc.{{ $className }}[key])
+            })
+        }
+    })
+
+    describe('getAll{{ $className }}Key', () => {
+        it('getAll{{ $className }}Key is Array', () => {
+            expect(Array.isArray(TestFunc.getAll{{ $className }}Key())).toBeTruthy()
+        })
+
+        for (const key in TestFunc.{{ $className }}) {
+            it(`getAll{{ $className }}Key ${key}`, () => {
+                expect(TestFunc.getAll{{ $className }}Key()).toContain(key)
+            })
+        }
+    })
 })

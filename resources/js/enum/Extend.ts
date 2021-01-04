@@ -7,8 +7,13 @@ export const Extend = {
     BASE: 'BASE'
 } as const
 
+export type ExtendKey = keyof typeof Extend
 export type Extend = typeof Extend[keyof typeof Extend]
 
+
+export const getAllExtend = (): Extend[] => Object.values(Extend)
+
+export const getAllExtendKey = (): ExtendKey[] => Object.keys(Extend) as ExtendKey[]
 
 export const isExtend = (s: any): s is Extend => Object.values(Extend).includes(s)
 
