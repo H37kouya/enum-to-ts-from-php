@@ -18,8 +18,17 @@ export const Plan = {
     STUDENT: 'STUDENT'
 } as const
 
+export type PlanKey = keyof typeof Plan
 export type Plan = typeof Plan[keyof typeof Plan]
 
+/**
+ * [Enum] Plan
+ */
+export const getAllPlan = (): Plan[] => Object.values(Plan)
+/**
+ * [Enum] Plan
+ */
+export const getAllPlanKey = (): PlanKey[] => Object.keys(Plan) as PlanKey[]
 /**
  * [Enum] Plan
  */

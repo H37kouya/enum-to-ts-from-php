@@ -13,8 +13,17 @@ export const Type = {
     ORGANIZATION: 'ORGANIZATION'
 } as const
 
+export type TypeKey = keyof typeof Type
 export type Type = typeof Type[keyof typeof Type]
 
+/**
+ * [Enum] Type
+ */
+export const getAllType = (): Type[] => Object.values(Type)
+/**
+ * [Enum] Type
+ */
+export const getAllTypeKey = (): TypeKey[] => Object.keys(Type) as TypeKey[]
 /**
  * [Enum] Type
  */

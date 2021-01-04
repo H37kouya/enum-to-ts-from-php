@@ -25,4 +25,28 @@ describe('Enum Plan', () => {
         expect(TestFunc.isStudent('STUDENT')).toBeTruthy()
         expect(TestFunc.isStudent('aaaaabbbbcccc')).toBeFalsy()
     })
+
+    describe('getAllPlan', () => {
+        it('getAllPlan is Array', () => {
+            expect(Array.isArray(TestFunc.getAllPlan())).toBeTruthy()
+        })
+
+        for (const key in TestFunc.Plan) {
+            it(`getAllPlan ${TestFunc.Plan[key]}`, () => {
+                expect(TestFunc.getAllPlan()).toContain(TestFunc.Plan[key])
+            })
+        }
+    })
+
+    describe('getAllPlanKey', () => {
+        it('getAllPlanKey is Array', () => {
+            expect(Array.isArray(TestFunc.getAllPlanKey())).toBeTruthy()
+        })
+
+        for (const key in TestFunc.Plan) {
+            it(`getAllPlanKey ${key}`, () => {
+                expect(TestFunc.getAllPlanKey()).toContain(key)
+            })
+        }
+    })
 })

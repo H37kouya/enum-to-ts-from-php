@@ -283,4 +283,28 @@ describe('Enum PrefCode', () => {
         expect(TestFunc.isOkinawa('47')).toBeTruthy()
         expect(TestFunc.isOkinawa('aaaaabbbbcccc')).toBeFalsy()
     })
+
+    describe('getAllPrefCode', () => {
+        it('getAllPrefCode is Array', () => {
+            expect(Array.isArray(TestFunc.getAllPrefCode())).toBeTruthy()
+        })
+
+        for (const key in TestFunc.PrefCode) {
+            it(`getAllPrefCode ${TestFunc.PrefCode[key]}`, () => {
+                expect(TestFunc.getAllPrefCode()).toContain(TestFunc.PrefCode[key])
+            })
+        }
+    })
+
+    describe('getAllPrefCodeKey', () => {
+        it('getAllPrefCodeKey is Array', () => {
+            expect(Array.isArray(TestFunc.getAllPrefCodeKey())).toBeTruthy()
+        })
+
+        for (const key in TestFunc.PrefCode) {
+            it(`getAllPrefCodeKey ${key}`, () => {
+                expect(TestFunc.getAllPrefCodeKey()).toContain(key)
+            })
+        }
+    })
 })
