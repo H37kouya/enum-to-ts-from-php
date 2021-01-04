@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionClassConstant;
 
-class MakeEnumForJs extends Command
+class MakeEnumForTs extends Command
 {
     /**
      * The name and signature of the console command.
@@ -40,7 +40,7 @@ class MakeEnumForJs extends Command
     protected string $stubDataForMain;
 
     /**
-     * Stubの格納
+     * テストのStubの格納
      */
     protected string $stubDataForTest;
 
@@ -76,11 +76,17 @@ class MakeEnumForJs extends Command
     public function handle()
     {
         foreach ($this->enumClasses as $enumClass) {
-            $this->createEnumJsUsecase($enumClass);
+            $this->createEnumTsUsecase($enumClass);
         }
     }
 
-    private function createEnumJsUsecase(string $class)
+    /**
+     * TsのEnumを生成する
+     *
+     * @param string $class
+     * @return void
+     */
+    private function createEnumTsUsecase(string $class)
     {
         $reflectionClass = new ReflectionClass($class);
         $className = $reflectionClass->getShortName();
@@ -89,10 +95,10 @@ class MakeEnumForJs extends Command
          * key名よりオブジェクト値とis〇〇関数の作成
          */
         $keyValue = '';
-        $keyValueGuardFunction = '';
+        $guardFunctionDefinitions = '';
         foreach ($reflectionClass->getConstants() as $key => $value) {
             $reflectionClassConstant = new ReflectionClassConstant($class, $key);
-            $funcCaseKey = $this->funcCase($key);
+            $guardFunctionName = 'is'.$this->upperCamelCase($key);
 
             /**
              * 定数のDoc Commentを取得
@@ -103,17 +109,17 @@ class MakeEnumForJs extends Command
 
                 // guard関数のためのコメント生成/整形
                 $guardConstantDocComment = str_replace('    ', '', $constantDocComment);
-                $keyValueGuardFunction .= "{$guardConstantDocComment}\n";
+                $guardFunctionDefinitions .= "{$guardConstantDocComment}\n";
             }
 
             $keyValue .= "    {$key}: '{$value}',\n\n";
-            $keyValueGuardFunction .= "export const is{$funcCaseKey} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
+            $guardFunctionDefinitions .= "export const {$guardFunctionName} = (v: any): v is '{$value}' => v === {$className}.{$key}\n";
         }
 
         /** いらない改行、カンマの削除 */
         $keyValue = substr($keyValue, 0, -3);
         /** いらない改行の削除 */
-        $keyValueGuardFunction = substr($keyValueGuardFunction, 0, -1);
+        $guardFunctionDefinitions = substr($guardFunctionDefinitions, 0, -1);
 
         /**
          * stubの置き換え
@@ -123,10 +129,10 @@ class MakeEnumForJs extends Command
          */
         $writableData = $this->replaceTogether(
             [
-                new ReplaceValueObject('{{ $classComment }}', $reflectionClass->getDocComment() ?? ''),
-                new ReplaceValueObject('{{ $className }}', $className),
-                new ReplaceValueObject('{{ $keyValue }}', $keyValue),
-                new ReplaceValueObject('{{ $keyValueGuardFunction }}', $keyValueGuardFunction),
+                new ReplaceTogetherArg('{{ $classComment }}', $reflectionClass->getDocComment() ?? ''),
+                new ReplaceTogetherArg('{{ $className }}', $className),
+                new ReplaceTogetherArg('{{ $keyValue }}', $keyValue),
+                new ReplaceTogetherArg('{{ $keyValueGuardFunction }}', $guardFunctionDefinitions),
             ],
             $this->stubDataForMain
         );
@@ -142,12 +148,12 @@ class MakeEnumForJs extends Command
         // test生成
         $keyValueTest = '';
         foreach ($reflectionClass->getConstants() as $key => $value) {
-            $funcCaseKey = $this->funcCase($key);
-            $keyValueTest .= "    it('is{$key}', () => {\n";
+            $guardFunctionName = 'is'.$this->upperCamelCase($key);
+            $keyValueTest .= "    it('{$guardFunctionName}', () => {\n";
             $keyValueTest .= "        expect(TestFunc.{$className}.{$key}).toBe('{$value}')\n";
             $keyValueTest .= "        expect(TestFunc.is{$className}('{$value}')).toBeTruthy()\n";
-            $keyValueTest .= "        expect(TestFunc.is{$funcCaseKey}('{$value}')).toBeTruthy()\n";
-            $keyValueTest .= "        expect(TestFunc.is{$funcCaseKey}('aaaaabbbbcccc')).toBeFalsy()\n";
+            $keyValueTest .= "        expect(TestFunc.{$guardFunctionName}('{$value}')).toBeTruthy()\n";
+            $keyValueTest .= "        expect(TestFunc.{$guardFunctionName}('aaaaabbbbcccc')).toBeFalsy()\n";
             $keyValueTest .= "    })\n";
         }
         $keyValueTest = substr($keyValueTest, 0, -1);
@@ -160,8 +166,8 @@ class MakeEnumForJs extends Command
          */
         $writableData = $this->replaceTogether(
             [
-                new ReplaceValueObject('{{ $className }}', $className),
-                new ReplaceValueObject('{{ $test }}', $keyValueTest),
+                new ReplaceTogetherArg('{{ $className }}', $className),
+                new ReplaceTogetherArg('{{ $test }}', $keyValueTest),
             ],
             $this->stubDataForTest
         );
@@ -178,9 +184,9 @@ class MakeEnumForJs extends Command
     /**
      * まとめて置き換える
      *
-     * @param ReplaceValueObject[] $replaceValueObjects
+     * @param ReplaceTogetherArg[] $replaceValueObjects
      * @param string $data
-     * @return void
+     * @return string
      */
     private function replaceTogether(array $replaceValueObjects, string $data): string
     {
@@ -216,13 +222,19 @@ class MakeEnumForJs extends Command
         return resource_path('/js/__tests__/enum');
     }
 
-    private function funcCase(string $str): string
+    /**
+     * アッパーキャメルケースに変換する
+     *
+     * @param string $str
+     * @return string
+     */
+    private function upperCamelCase(string $str): string
     {
         return Str::studly(strtolower($str));
     }
 }
 
-class ReplaceValueObject
+class ReplaceTogetherArg
 {
     public string $search;
     public string $replace;
